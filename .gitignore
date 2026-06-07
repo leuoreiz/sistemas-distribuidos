@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.DS_Store
+# arquivos de lock do Office (PowerPoint/Word abertos)
+~$*
