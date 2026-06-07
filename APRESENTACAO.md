@@ -78,8 +78,67 @@ demonstrar escalabilidade e transparência."
   hardware próprio (comparação do slide A02-C1/A03).
 
 ## Checklist do dia da apresentação
-- [ ] Abrir o link da nuvem ~1 min antes (evitar cold start do plano gratuito)
+- [ ] Abrir o link da nuvem ~2 min antes (evitar cold start do plano gratuito)
+- [ ] Link no ar: https://sistema-distribuido-tdt8.onrender.com
 - [ ] Ter o Docker rodando localmente para a demo de escala/falha (plano B)
 - [ ] Saber enviar uma tarefa e mostrar o resultado "processado por"
 - [ ] Saber explicar 1 premissa apontando para o arquivo no código
 - [ ] Saber dizer: nuvem pública + PaaS + 5 características do NIST
+
+---
+
+## Respostas para os 3 pontos que podem pegar (alinhar com o material)
+
+**1) "Por que não usou Azure, Google ou AWS, que são os do material (A05)?"**
+O material apresenta os 3 grandes e o critério de seleção de fornecedor de IaaS.
+Escolhi o Render porque: (a) o enunciado permite a nuvem de preferência; (b) é
+**PaaS**, que é o modelo mais adequado ao meu caso — só publico o contêiner, não
+gerencio servidor; (c) o Render **roda sobre a infraestrutura da AWS**, então
+indiretamente uso um dos fornecedores do material; (d) tem plano gratuito e deploy
+direto do Docker, sem cartão de crédito. Se fosse exigido IaaS num dos três, o
+equivalente seria subir o mesmo contêiner numa instância **EC2 (AWS)** — a
+arquitetura não mudaria.
+
+**2) "E a segurança?" (A01 e A02 cobram)**
+A comunicação usa **HTTPS (TLS)** fornecido pelo Render, então os dados trafegam
+criptografados — atende ao "selar informações enviadas pela rede" do slide A01.
+Além disso, o **Redis não fica exposto à internet** (`ipAllowList: []` no
+`render.yaml`): só os serviços internos do Render o acessam. Em produção eu
+adicionaria **autenticação na API** (token/chave) e **ACL no Redis**. No escopo do
+trabalho, o foco foram as premissas de distribuição; segurança em profundidade
+seria o próximo passo.
+
+**3) "O que é SLA?" (A02-C1)**
+SLA (Service Level Agreement / Acordo de Nível de Serviço) é o **contrato** que
+define tempos de atendimento e resolução por severidade. O material reforça:
+**SLA ≠ disponibilidade** — o SLA é a promessa contratual; a disponibilidade é o
+quanto o sistema fica de fato no ar. Uso o plano **gratuito** do Render, que não
+tem SLA garantido (inclusive hiberna após inatividade). Num plano pago haveria
+SLA de uptime (ex.: 99,9%), e minha arquitetura já ajuda a cumprir disponibilidade:
+réplicas da API + workers redundantes + Redis gerenciado.
+
+---
+
+## Roteiro cronometrado (~5 minutos)
+
+**0:00–0:30 — Abertura.** Dizer o resumo de 30s (lá no topo deste arquivo).
+
+**0:30–1:30 — Mostrar funcionando na nuvem.** Abrir o link, apontar o campo
+"Atendido por" (transparência), clicar em **"Enviar tarefa"** e mostrar o contador
+*processadas* subir de 0 → 1. Clicar em **"Enviar 10"** e mostrar várias sendo
+processadas (concorrência). Recarregar a página e comentar que o nó pode mudar.
+
+**1:30–3:00 — Explicar a arquitetura.** Desenhar/descrever o fluxo:
+*você → API (produtor) → fila no Redis → workers (consumidores)*. Frase-chave:
+"a API e os workers nunca se chamam direto, só trocam mensagens pela fila — é a
+definição de sistema distribuído do slide A01". Apontar 3 premissas: comunicação
+por mensagens, concorrência e tolerância a falhas (heartbeats com TTL).
+
+**3:00–4:00 — Parte de nuvem.** Dizer: **nuvem pública**, modelo **PaaS** (Render
+entrega o ambiente, eu não gerencio servidor — definição do A04), as **5
+características do NIST** (auto-serviço, acesso via rede, agrupamento, elasticidade,
+mensuração) e citar **Docker** como vantagem de nuvem (slide A03 cita nominalmente).
+
+**4:00–5:00 — Fechamento e perguntas.** Resumir: "sistema distribuído de
+microsserviços, comunicação por mensagens, escalável e tolerante a falhas, rodando
+em nuvem pública PaaS". Estar pronto para as 3 perguntas acima.
